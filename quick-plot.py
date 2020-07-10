@@ -55,25 +55,28 @@ def _make_plot(da, var, contour_levels):
     # valid strings are ['GTK3Agg', 'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Agg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
     matplotlib.use('TkAgg')
     long_name = da.attrs['long_name']
+    minval = da.min().data
+    maxval = da.max().data
     print(f'Plotting {long_name}...')
-    if contour_levels:
+    print(f'Min: {minval}')
+    print(f'Max: {maxval}')
+    if contour_levels is not None:
+        print(f'User specified contour levels: {contour_levels}')
         levels = contour_levels
     else:
+        # using levels from cesm2-marbl repo
         levels_dict = dict(
                         NO3=[0, 0.1, 0.2, 0.4, 0.6, 0.8, 1, 2, 4, 8, 12., 16, 20, 24, 28, 32,],
                         PO4=[0, 0.02, 0.04, 0.08, 0.12, 0.16, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.2, 1.4, 1.6, 1.8, 2.0],
-                        SiO3=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90,]
+                        SiO3=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90,],
                         )
-        minval = da.min().data
-        maxval = da.max().data
         if var in levels_dict:
             levels = levels_dict[var]
         else:
             levels = np.linspace(_floor_1sigfig(minval), _ceil_1sigfig(maxval), 16)
 
-    print(f'Min: {minval}')
-    print(f'Max: {maxval}')
-    print(f'Contour levels run from {levels[0]} to {levels[-1]}')
+        print(f'Contour levels run from {levels[0]} to {levels[-1]}')
+
     da.plot(levels=levels, cmap=cmocean.cm.dense, norm=colors.BoundaryNorm(levels, ncolors=len(levels)))
     plt.title(f'{long_name}\nmin: {minval:.2f}, max: {maxval:.2f}');
     plt.show()
@@ -105,9 +108,9 @@ def _parse_args():
     parser.add_argument('-l', '--level', action='store', dest='level', default=0,
                         help='Which level to plot (index, not physical depth)')
 
-    # # Which level to plot
-    # parser.add_argument('-l', '--level', action='store', dest='level', default=0,
-    #                     help='Which level to plot (index, not physical depth)')
+    # What contour levels to plot
+    parser.add_argument('-c', '--contour-levels', nargs='+', type=float, action='store', dest='contour_levels', default=None,
+                        help='What contour levels to use')
 
     return parser.parse_args()
 
@@ -122,4 +125,4 @@ if __name__ == '__main__':
                }
     infile = os.path.join(case, f'{case}.pop.h.{suffixes[args.stream]}')
     ds = xr.open_dataset(infile).isel(z_t=args.level, z_t_150m=args.level, z_w=args.level, z_w_top=args.level, z_w_bot=args.level)
-    _make_plot(ds[args.var], args.var, None)
+    _make_plot(ds[args.var], args.var, np.array(args.contour_levels))
