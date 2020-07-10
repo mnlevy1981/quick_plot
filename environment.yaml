@@ -1,0 +1,17 @@
+name: quick-plot
+channels:
+- conda-forge
+- defaults
+dependencies:
+- cartopy # may use it later to make plots nicer
+- cmocean
+- matplotlib
+- netcdf4 # needed for xarray?
+- numpy
+- pandas # needed for xarray?
+- pip
+- pycairo # necessary for GTK [plotting to stdout]
+- pygobject # necessary for GTK [plotting to stdout]
+- python=3.7
+- scipy # needed for xarray?
+- xarray
