@@ -62,7 +62,7 @@ def _make_plot(da, var, contour_levels):
     print(f'Max: {maxval}')
     if contour_levels is not None:
         print(f'User specified contour levels: {contour_levels}')
-        levels = contour_levels
+        levels = np.array(contour_levels)
     else:
         # using levels from cesm2-marbl repo
         levels_dict = dict(
@@ -125,4 +125,4 @@ if __name__ == '__main__':
                }
     infile = os.path.join(case, f'{case}.pop.h.{suffixes[args.stream]}')
     ds = xr.open_dataset(infile).isel(z_t=args.level, z_t_150m=args.level, z_w=args.level, z_w_top=args.level, z_w_bot=args.level)
-    _make_plot(ds[args.var], args.var, np.array(args.contour_levels))
+    _make_plot(ds[args.var], args.var, args.contour_levels)
